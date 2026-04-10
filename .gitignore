@@ -1,8 +1,6 @@
-.anchor
+target/
+node_modules/
+sdk/node_modules/
+.anchor/
+*.so.bak
 .DS_Store
-target
-**/*.rs.bk
-node_modules
-test-ledger
-.yarn
-.surfpool
