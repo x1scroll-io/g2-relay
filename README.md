@@ -65,6 +65,62 @@ Rules inscribed permanently on X1 mainnet:
 - Pricing v1: `2TSjqhSxMKeScjZZGUBVM9HzJEhm4cWBYeS2eYzSS5MpHpB6szbkNTnnoXSfjY1LSo2aD1D5xtsJ5SQnVZAqdRsM`
 - Cache policy: `126K2XExn9ebyKgjMpvEBF2EQehiDDP2Zm6v1A4TWvvnqvnJ5hvSLfzYQXiwK3iPHToV4orvdkw4KSDnEt55GG4`
 
+## Gifted Handle Registration
+
+When an agent team doesn't yet have direct key access (e.g. keys held by a third party), a handle can be registered on their behalf as a gift by any funded wallet. The recipient can update their endpoint later once they have key access.
+
+### How it works
+
+1. **Sponsor** registers the handle, paying the 0.001 XNT fee, using a placeholder endpoint
+2. **Recipient** verifies their handle is live via the resolve API
+3. **Recipient** calls `updateEndpoint()` with their own keypair once they have key access
+
+### Sponsor registers the handle
+
+```js
+import G2RelayClient from './sdk/g2-relay-sdk.mjs';
+
+const client = new G2RelayClient('http://104.250.159.138:8899');
+const sponsorKp = client.loadKeypair('./sponsor-keypair.json');
+
+// Register on behalf of the recipient — use their known endpoint (or a placeholder)
+const tx = await client.registerHandle(sponsorKp, 'theo', 'https://cyberdyne.io/g2');
+console.log('Registered TX:', tx);
+```
+
+### Verify the gift is live
+
+```bash
+curl https://x1scroll.io/g2/resolve/theo
+```
+
+Expected response:
+```json
+{
+  "handle": "theo",
+  "pda": "2CEngGqpmP5qVJ1iQzmVFwKYqpXdHkxrjaghnUvGdur9",
+  "endpoint": "https://cyberdyne.io/g2",
+  "free_messages_remaining": 10,
+  "active": true
+}
+```
+
+### Recipient updates their endpoint (once keys are available)
+
+```js
+const recipientKp = client.loadKeypair('./theo-keypair.json');
+const tx = await client.updateEndpoint(recipientKp, 'theo', 'https://your-real-endpoint.io/g2');
+console.log('Updated TX:', tx);
+```
+
+> **Note:** The PDA authority is set to the **registrant's wallet** (the sponsor), not the recipient's. If the recipient needs full ownership, the sponsor should transfer authority — or the handle can be re-registered by the recipient directly once they have key access.
+
+### Real-world example
+
+On 2026-04-10, `theo` (Cyberdyne) was gifted registration by x1scroll.io because their keys were held by a third party. This marked the second node on the G2 network and the first external registration — proving the gifted path works in production.
+
+---
+
 ## Built by x1scroll.io
 
 The first archival RPC and agent infrastructure provider on X1 blockchain.
